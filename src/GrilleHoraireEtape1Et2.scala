@@ -2,8 +2,14 @@
 
 import JaCoP.scala._
 import scala.reflect.ClassManifestFactory.classType
-
-object GrilleHoraireEtape1 extends App with jacop {
+/**
+ * contraintes pour l etape 1 : 
+ * 	- Chaque cours n est donné que 2 fois par série et par semaine
+ *  - M. Grolaux, M. Choquet et M. Damas ne donne pas cours avant 10h45
+ *  - Aucun prof ne donne cours le lundi
+ *  - Chaque serie a cours dans un local et avec un prof different 
+ */
+object GrilleHoraireEtape1Et2 extends App with jacop {
 
   /*	--------------
    *  INITIALISATION
@@ -30,15 +36,12 @@ object GrilleHoraireEtape1 extends App with jacop {
     1 -> "017",
     2 -> "019")
     
-  val coursParProf = Map(
+  /*val coursParProf = Map(
     1 -> List(2,4),
     2 -> List(4),
     3 -> List(1),
     4 -> List(3)
-    
-    
-    
-  )
+  )*/
 
   // nombre profs/cours/locaux/series/jours/horaires
   val nProf = 4
@@ -50,7 +53,7 @@ object GrilleHoraireEtape1 extends App with jacop {
   val nTranchesHorairesCours = 2
   val nTranchesHorairesSem = nJours * nTranchesHorairesJour
 
-  // tranches horaire serie 1
+  // tranches horaires serie 1
   val serie1 =
     for (i <- List.range(0, nTranchesHorairesSem)) yield List(
       new IntVar("prof", 0, nProf),
@@ -70,6 +73,7 @@ object GrilleHoraireEtape1 extends App with jacop {
    */
 
   /* COURS */
+  // - Chaque cours n est donné que 2 fois par série et par semaine
   for (i <- 1 to nCours) {
     //print("INDICE"+i)
     val coursTempS1 = for (j <- List.range(0, nTranchesHorairesSem)) yield {
@@ -87,23 +91,23 @@ object GrilleHoraireEtape1 extends App with jacop {
   }
   
   /* COURS PAR PROF*/
-  coursParProf.foreach{
+  /*coursParProf.foreach{
     case (key,value) => print (key + " "+value) //TODO 
-  }
+  }*/
   
   /* TRANCHES HORAIRES */
   for (i <- List.range(0, nTranchesHorairesSem)) {
 
-    // test OK : prof num 3 && 2 ne donne pas cours avant 10h30
+    // - M. Grolaux, M. Choquet et M. Damas ne donne pas cours avant 10h45
     if (i < 5) {
-      serie1(i)(iProf) #\= 3
+      serie1(i)(iProf) #\= 3 //M. Choquet
       serie2(i)(iProf) #\= 3
-      serie1(i)(iProf) #\= 2
+      serie1(i)(iProf) #\= 2 //M. Damas
       serie2(i)(iProf) #\= 2
-      serie1(i)(iProf) #\= 1
+      serie1(i)(iProf) #\= 1 //M. Grolaux
       serie2(i)(iProf) #\= 1
     }
-    // aucun prof donne cours lundi
+    // - Aucun prof ne donne cours le lundi
     if (i % 5==0) {
       for(k<- 1 to nCours){
         serie1(i)(iProf) #\= k
@@ -111,8 +115,9 @@ object GrilleHoraireEtape1 extends App with jacop {
       }
     }
     
-    OR(serie1(i)(iProf) + serie2(i)(iProf) #= 0, serie1(i)(iProf) #\= serie2(i)(iProf)) // prof diffÃ©rents
-    OR(serie1(i)(iLocal) + serie2(i)(iLocal) #= 0, serie1(i)(iLocal) #\= serie2(i)(iLocal)) // locaux diffÃ©rents
+    //- Chaque serie a cours dans un local et avec un prof different 
+    OR(serie1(i)(iProf) + serie2(i)(iProf) #= 0, serie1(i)(iProf) #\= serie2(i)(iProf)) // prof differents
+    OR(serie1(i)(iLocal) + serie2(i)(iLocal) #= 0, serie1(i)(iLocal) #\= serie2(i)(iLocal)) // locaux differents
     
 
     /* serie 1 */
@@ -165,6 +170,9 @@ object GrilleHoraireEtape1 extends App with jacop {
   val mySearch = search(all_series, most_constrained, indomain_middle)
   val result = satisfy(mySearch, afficherHoraire)
 
+  /**
+   * affichage horaire
+   */
   def afficherHoraire(): Unit = {
     var compteur = 1
     for (v <- all_series) {
