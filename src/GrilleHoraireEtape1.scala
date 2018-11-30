@@ -3,14 +3,12 @@
 import JaCoP.scala._
 import scala.reflect.ClassManifestFactory.classType
 
-object GrilleHoraire extends App with jacop {
+object GrilleHoraireEtape1 extends App with jacop {
 
   /*	--------------
    *  INITIALISATION
    *  --------------
    */
-  
-  //test
   
   //indices
   val iProf = 0
