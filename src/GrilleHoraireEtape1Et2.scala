@@ -169,7 +169,8 @@ object GrilleHoraireEtape1Et2 extends App with jacop {
     for (v <- all_series) {
       if (compteur % 60 == 1) {
         println("SERIE "+ (compteur/60+1))
-        println("%-15s".format("")+"%-31s".format("| LUNDI")+"%-30s".format("| MARDI")+"%-30s".format("| MERCREDI")+"%-30s".format("| JEUDI")+"%-30s".format("| VENDREDI"))
+        println("%-15s".format("")+"%-30s".format("LUNDI")+"%-32s".format("| MARDI")+"%-32s".format("| MERCREDI")+"%-32s".format("| JEUDI")+"%-30s".format("| VENDREDI"))
+        println("---------------------------------------------------------------------------------------------------------------------------------------------------------------------");
       }
       (compteur%60) match{
         case 1 => print("%-15s".format("8h30-10h30"))
