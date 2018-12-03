@@ -4,7 +4,7 @@ import JaCoP.scala._
 import scala.reflect.ClassManifestFactory.classType
 /**
  * contraintes pour l etape 1 : 
- * 	- Chaque cours n est donné que 2 fois par série et par semaine
+ * 	- Chaque cours n est donne que 2 fois par serie et par semaine
  *  - M. Grolaux, M. Choquet et M. Damas ne donne pas cours avant 10h45
  *  - Aucun prof ne donne cours le lundi
  *  - Chaque serie a cours dans un local et avec un prof different 
@@ -73,7 +73,7 @@ object GrilleHoraireEtape1Et2 extends App with jacop {
    */
 
   /* COURS */
-  // - Chaque cours n est donné que 2 fois par série et par semaine
+  // - Chaque cours n est donne que 2 fois par serie et par semaine
   for (i <- 1 to nCours) {
     val coursTempS1 = for (j <- List.range(0, nTranchesHorairesSem)) yield {
       val b = new BoolVar("coursTempS1");
@@ -204,3 +204,8 @@ object GrilleHoraireEtape1Et2 extends App with jacop {
     }
   }
 }
+
+// contraintes soft
+// minimize sur un IntVar -> 0 = aucune transgression
+// comment donner un poids plus fort Ã  d'autres contraintes de type boolvar ?
+// -> multiplier
