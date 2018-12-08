@@ -1,0 +1,9 @@
+$(function(){
+	$.ajax({
+		url:"/getHoraire",
+		type:"GET",
+		success:function(resp){
+			console.log(resp);
+		}
+	});
+});

@@ -1,5 +1,7 @@
 
 
+package etape1et2
+
 import JaCoP.scala._
 import scala.reflect.ClassManifestFactory.classType
 /**
