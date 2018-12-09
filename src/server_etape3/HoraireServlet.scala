@@ -3,7 +3,8 @@ package server_etape3
 import javax.servlet.http.HttpServlet
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
-import com.owlike.genson.Genson
+import spray.json._
+import DefaultJsonProtocol._
 
 
 object HoraireServlet extends HttpServlet {
@@ -11,10 +12,11 @@ object HoraireServlet extends HttpServlet {
   val horaire=grille.horaire();
   
   override def doGet(req:HttpServletRequest, resp:HttpServletResponse){
-		println(req);
-		println(horaire);
-    val json=new Genson().serialize("hello world");
+    println("hello");
+    println(Map("1"->List(1,2,2)).toJson);
+    val json=horaire.toJson;
+    println(json.toString());
 		resp.setContentType("application/json");
-		resp.getOutputStream().write(json.getBytes());
+		resp.getOutputStream().write(json.toString().getBytes);
   }
 }

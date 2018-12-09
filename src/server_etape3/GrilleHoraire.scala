@@ -4,6 +4,7 @@ package server_etape3
 
 import JaCoP.scala._
 import scala.reflect.ClassManifestFactory.classType
+
 /**
  * contraintes pour l etape 1 : 
  * 	- Chaque cours n est donne que 2 fois par serie et par semaine
@@ -13,7 +14,12 @@ import scala.reflect.ClassManifestFactory.classType
  */
 object GrilleHoraire extends App with jacop {
 
-  /*	--------------
+  def void():Unit={
+    
+  }
+  
+  def horaire(): Map[String,List[List[String]]]={
+      /*	--------------
    *  INITIALISATION
    *  --------------
    */
@@ -23,6 +29,10 @@ object GrilleHoraire extends App with jacop {
   val iCours = 1
   val iLocal = 2
 
+  val series = Map(
+  1 -> "serie 1",
+  2 -> "serie 2")
+  
   val profs = Map(
     1 -> "Grolaux",
     2 -> "Damas",
@@ -152,31 +162,47 @@ object GrilleHoraire extends App with jacop {
       sum(List(boolVarCours, boolVarProf, boolVarLocal)) #= 3)
 
   }
-
+  
   /* --------
    * RESEARCH
    * --------
    */
   val all_series = serie1.flatten ::: serie2.flatten
 
-  //val mySearch = search(all_series, first_fail, indomain_middle)
-
-  val mySearch = search(all_series, most_constrained, indomain_middle)
-  val result = satisfy(mySearch,void)
-  
-  //print(all_series)
-  
-  def void():Unit={
+    //val mySearch = search(all_series, first_fail, indomain_middle)
     
-  }
-  
-  def horaire():List[IntVar]={
-    all_series
+    val mySearch = search(all_series, most_constrained, indomain_middle)
+    val result = satisfy(mySearch,void)
+    //all_series
+    
+    var json=Map("-1"->List(List("1","2","3")));
+    for(i <- 1 to nSeries){
+      val liste=for (j <- List.range(0, nTranchesHorairesSem)) yield{
+        List(
+            profs.get(all_series((j*3+iProf)+(i*nTranchesHorairesSem)).value()) match {
+              case Some(name) => name
+              case None => ""
+            },
+            cours.get(all_series((j*3+iCours)+(i*nTranchesHorairesSem)).value()) match {
+              case Some(name) => name
+              case None => ""
+            },
+            locaux.get(all_series((j*3+iLocal)+(i*nTranchesHorairesSem)).value()) match {
+              case Some(name) => name
+              case None => ""
+            }
+            
+        );
+      }
+      json=json + (series.get(i).get->liste);
+    }
+    
+    json
   }
   /**
    * affichage horaire
    */
-  def afficherHoraire(): Unit = {
+  /*def afficherHoraire(): Unit = {
     var compteur = 1
     for (v <- all_series) {
       if (compteur % 60 == 1) {
@@ -214,7 +240,7 @@ object GrilleHoraire extends App with jacop {
       compteur += 1
 
     }
-  }
+  }*/
 }
 
 // contraintes soft
