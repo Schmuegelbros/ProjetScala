@@ -1,25 +1,17 @@
-
-
-package server_etape3
+package etape4
 
 import JaCoP.scala._
 import scala.reflect.ClassManifestFactory.classType
-
 /**
  * contraintes pour l etape 1 : 
- * 	- Chaque cours n est donne que 2 fois par serie et par semaine
+ * 	- Chaque cours n est donn� que 2 fois par s�rie et par semaine
  *  - M. Grolaux, M. Choquet et M. Damas ne donne pas cours avant 10h45
  *  - Aucun prof ne donne cours le lundi
  *  - Chaque serie a cours dans un local et avec un prof different 
  */
-object GrilleHoraire extends App with jacop {
+object GrilleHoraireEtape4 extends App with jacop {
 
-  def void():Unit={
-    
-  }
-  
-  def horaire(): Map[String,List[List[String]]]={
-      /*	--------------
+  /*	--------------
    *  INITIALISATION
    *  --------------
    */
@@ -29,10 +21,6 @@ object GrilleHoraire extends App with jacop {
   val iCours = 1
   val iLocal = 2
 
-  val series = Map(
-  0 -> "serie 1",
-  1 -> "serie 2")
-  
   val profs = Map(
     1 -> "Grolaux",
     2 -> "Damas",
@@ -106,25 +94,44 @@ object GrilleHoraire extends App with jacop {
     case (key,value) => print (key + " "+value) //TODO 
   }*/
   
+
+   //val contraintesObligatoiresProfs=placerContraintesNombreHeuresADonnerPourProf(1, 8)
+   val contraintesAMaximiserProfs= absenceProfAvantHeure(1, 0)::: //contraintes grolaux enonce
+                         absenceProfApresHeure(1, 2)
+     
+     
+     /*absenceProfJourHeure(4, 1, 1) ::: 
+     absenceProfJourHeure(4, 2, 1):::
+     absenceProfJour(3, 0)  ::: 
+     absenceProfJourHeure(2, 0, 0) :::*/
+                 
+   println(contraintesAMaximiserProfs)
+   println(contraintesAMaximiserProfs.size)
+   //count(contraintesAMaximiserProfs,contraintesAMaximiserProfs.size)
+   
+   /*val i = */sum(contraintesAMaximiserProfs) #=15
+ 
+
+  
   /* TRANCHES HORAIRES */
   for (i <- List.range(0, nTranchesHorairesSem)) {
 
     // - M. Grolaux, M. Choquet et M. Damas ne donne pas cours avant 10h45
-    if (i < 5) {
+    /*if (i < 5) {
       serie1(i)(iProf) #\= 3 //M. Choquet
       serie2(i)(iProf) #\= 3
       serie1(i)(iProf) #\= 2 //M. Damas
       serie2(i)(iProf) #\= 2
       serie1(i)(iProf) #\= 1 //M. Grolaux
       serie2(i)(iProf) #\= 1
-    }
+    }*/
     // - Aucun prof ne donne cours le lundi
-    if (i % 5==0) {
+    /*if (i % 5==0) {
       for(k<- 1 to nCours){
         serie1(i)(iProf) #\= k
         serie2(i)(iProf) #\= k
       }
-    }
+    }*/
     
     //- Chaque serie a cours dans un local et avec un prof different (les fourches correspondent au numero 0)
     OR(serie1(i)(iProf) + serie2(i)(iProf) #= 0, serie1(i)(iProf) #\= serie2(i)(iProf)) // prof differents
@@ -162,49 +169,21 @@ object GrilleHoraire extends App with jacop {
       sum(List(boolVarCours, boolVarProf, boolVarLocal)) #= 3)
 
   }
-  
+
   /* --------
    * RESEARCH
    * --------
    */
   val all_series = serie1.flatten ::: serie2.flatten
 
-    //val mySearch = search(all_series, first_fail, indomain_middle)
-    
-    val mySearch = search(all_series, most_constrained, indomain_middle)
-    val result = satisfy(mySearch,void)
-    
-    var json: Map[String,List[List[String]]]=Map.empty;
-    for(i <- 0 to nSeries-1){
-      var liste=for (j <- List.range(0, nTranchesHorairesSem)) yield{
-        val indiceP=(j*3+iProf)+(i*nTranchesHorairesSem*3);
-        val indiceC=(j*3+iCours)+(i*nTranchesHorairesSem*3);
-        val indiceL=(j*3+iLocal)+(i*nTranchesHorairesSem*3);
-        List(  
-            profs.get(all_series(indiceP).value()) match {
-              case Some(name) => name
-              case None => ""
-            },
-            cours.get(all_series(indiceC).value()) match {
-              case Some(name) => name
-              case None => ""
-            },
-            locaux.get(all_series(indiceL).value()) match {
-              case Some(name) => name
-              case None => ""
-            }          
-        );
-      }
-      //json(series.get(i).get)->liste);
-      json += (series.get(i).get->liste)
-    }
-    
-    json
-  }
+  //val mySearch = search(all_series, first_fail, indomain_middle)
+  val mySearch = search(all_series, most_constrained, indomain_middle)
+  val result = satisfy(mySearch, afficherHoraire)
+
   /**
    * affichage horaire
    */
-  /*def afficherHoraire(): Unit = {
+  def afficherHoraire(): Unit = {
     var compteur = 1
     for (v <- all_series) {
       if (compteur % 60 == 1) {
@@ -242,10 +221,58 @@ object GrilleHoraire extends App with jacop {
       compteur += 1
 
     }
-  }*/
+  }
+  
+  def absenceProfJourHeure(indiceProf:Int,indiceJour:Int,indiceHeure:Int) : List[BoolVar] = {
+    val indiceTrancheHoraire=indiceHeure*5+indiceJour
+    val bool=new BoolVar()
+    val bool2=new BoolVar()
+    bool<=> (serie1(indiceTrancheHoraire)(iProf) #\= indiceProf)
+    bool2<=>(serie2(indiceTrancheHoraire)(iProf) #\= indiceProf)
+    List(bool,bool2)
+  }
+  
+  //TODO ajouter serie 2 
+  def absenceProfAvantHeure(indiceProf:Int,indiceHeure:Int) : List[BoolVar]={    
+    val liste=for ( indice <- List.range(0, indiceHeure*nJours+nTranchesHorairesJour)) yield{
+        val bool=new BoolVar() 
+        bool<=> (serie1(indice)(iProf) #\= indiceProf)
+        bool
+    };
+    liste
+  }
+  //TODO ajouter serie 2 
+  def absenceProfApresHeure(indiceProf:Int,indiceHeure:Int) : List[BoolVar]={    
+    val liste=for ( indice <- List.range(indiceHeure*nJours,nTranchesHorairesSem )) yield{
+        val bool=new BoolVar() 
+        bool<=> (serie1(indice)(iProf) #\= indiceProf)
+        bool
+    };
+    liste
+  }
+  //TODO ajouter serie 2 
+  def absenceProfJour(indiceProf:Int,indiceJour:Int) : List[BoolVar]={    
+    val liste=for ( indice <- List.range(0,nTranchesHorairesJour)) yield{
+        
+        val bool=new BoolVar() 
+        bool<=> (serie1(indiceJour*nJours+indice)(iProf) #\= indiceProf)
+        bool
+    };
+    liste
+  }
+  
+  def placerContraintesNombreHeuresADonnerPourProf(indiceProf:Int, nbHeures:Int) {
+     val liste=for ( indice <- List.range(0,nTranchesHorairesSem)) yield{
+        
+        val bool=new BoolVar()
+        val bool2=new BoolVar()
+        bool<=> (serie1(indice)(iProf) #= indiceProf )
+        bool2 <=>(serie2(indice)(iProf) #= indiceProf )
+        /*List(*/bool/*,bool2)*/
+    };
+    sum(liste/*.flatten*/) #= nbHeures
+  }
+  
+  def append[A](x: List[A], y: List[A]): List[A] = for (e <- x.++(y)) yield e
+  
 }
-
-// contraintes soft
-// minimize sur un IntVar -> 0 = aucune transgression
-// comment donner un poids plus fort à d'autres contraintes de type boolvar ?
-// -> multiplier
