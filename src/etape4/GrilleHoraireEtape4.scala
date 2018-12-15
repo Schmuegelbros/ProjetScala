@@ -3,11 +3,11 @@ package etape4
 import JaCoP.scala._
 import scala.reflect.ClassManifestFactory.classType
 /**
- * contraintes pour l etape 1 : 
- * 	- Chaque cours n est donn� que 2 fois par s�rie et par semaine
- *  - M. Grolaux, M. Choquet et M. Damas ne donne pas cours avant 10h45
- *  - Aucun prof ne donne cours le lundi
- *  - Chaque serie a cours dans un local et avec un prof different 
+ * contraintes pour l etape 4 : 
+ *  - M. Grolaux donne 20 heures de cours (=10 tranches horaires de 2h)
+ *  - M. Grolaux ne souhaite pas donné cours avant 10h30 et après 13h00
+ *  - M.Grolaux ne donne pas cours le lundi a la serie 1
+ *  - Chaque serie a cours dans un local et avec un prof different
  */
 object GrilleHoraireEtape4 extends App with jacop {
 
@@ -35,13 +35,6 @@ object GrilleHoraireEtape4 extends App with jacop {
   val locaux = Map(
     1 -> "017",
     2 -> "019")
-    
-  /*val coursParProf = Map(
-    1 -> List(2,4),
-    2 -> List(4),
-    3 -> List(1),
-    4 -> List(3)
-  )*/
 
   // nombre profs/cours/locaux/series/jours/horaires
   val nProf = 4
@@ -73,66 +66,23 @@ object GrilleHoraireEtape4 extends App with jacop {
    */
 
   /* COURS */
-  // - Chaque cours n est donne que 2 fois par serie et par semaine
-  for (i <- 1 to nCours) {
-    val coursTempS1 = for (j <- List.range(0, nTranchesHorairesSem)) yield {
-      val b = new BoolVar("coursTempS1");
-      b <=> (serie1(j)(iCours) #= i)
-      b
-    }
-    val coursTempS2 = for (j <- List.range(0, nTranchesHorairesSem)) yield {
-      val b = new BoolVar("coursTempS2");
-      b <=> (serie2(j)(iCours) #= i)
-      b
-    }
-    sum(coursTempS1) #= 2 // 2 tranche horaires pour chaque cours par serie
-    sum(coursTempS2) #= 2 // 2 tranche horaires pour chaque cours par serie
-  }
   
-  /* COURS PAR PROF*/
-  /*coursParProf.foreach{
-    case (key,value) => print (key + " "+value) //TODO 
-  }*/
-  
-
-   //val contraintesObligatoiresProfs=placerContraintesNombreHeuresADonnerPourProf(1, 8)
-   val contraintesAMaximiserProfs= absenceProfAvantHeure(1, 0)::: //contraintes grolaux enonce
+  // - M. Grolaux donne 20 heures de cours
+   val contraintesObligatoiresGrolaux=placerContraintesNombreHeuresADonnerPourProf(1, 20)
+   // -M. Grolaux ne souhaite pas donné cours avant 10h30 et après 13h00
+   val contraintesSoftsGrolaux= absenceProfAvantHeure(1, 0)::: //contraintes grolaux enonce
                          absenceProfApresHeure(1, 2)
      
-     
-     /*absenceProfJourHeure(4, 1, 1) ::: 
-     absenceProfJourHeure(4, 2, 1):::
-     absenceProfJour(3, 0)  ::: 
-     absenceProfJourHeure(2, 0, 0) :::*/
-                 
-   println(contraintesAMaximiserProfs)
-   println(contraintesAMaximiserProfs.size)
-   //count(contraintesAMaximiserProfs,contraintesAMaximiserProfs.size)
-   
-   /*val i = */sum(contraintesAMaximiserProfs) #=15
+   val contraintesSoft=count(contraintesSoftsGrolaux,0)
  
 
   
   /* TRANCHES HORAIRES */
   for (i <- List.range(0, nTranchesHorairesSem)) {
-
-    // - M. Grolaux, M. Choquet et M. Damas ne donne pas cours avant 10h45
-    /*if (i < 5) {
-      serie1(i)(iProf) #\= 3 //M. Choquet
-      serie2(i)(iProf) #\= 3
-      serie1(i)(iProf) #\= 2 //M. Damas
-      serie2(i)(iProf) #\= 2
-      serie1(i)(iProf) #\= 1 //M. Grolaux
-      serie2(i)(iProf) #\= 1
-    }*/
-    // - Aucun prof ne donne cours le lundi
-    /*if (i % 5==0) {
-      for(k<- 1 to nCours){
-        serie1(i)(iProf) #\= k
-        serie2(i)(iProf) #\= k
-      }
-    }*/
-    
+    // - M.Grolaux ne donne pas cours le lundi a la serie 1
+    if (i % 5==0) {
+        serie1(i)(iProf) #\= 1
+    }
     //- Chaque serie a cours dans un local et avec un prof different (les fourches correspondent au numero 0)
     OR(serie1(i)(iProf) + serie2(i)(iProf) #= 0, serie1(i)(iProf) #\= serie2(i)(iProf)) // prof differents
     OR(serie1(i)(iLocal) + serie2(i)(iLocal) #= 0, serie1(i)(iLocal) #\= serie2(i)(iLocal)) // locaux differents
@@ -178,20 +128,22 @@ object GrilleHoraireEtape4 extends App with jacop {
 
   //val mySearch = search(all_series, first_fail, indomain_middle)
   val mySearch = search(all_series, most_constrained, indomain_middle)
-  val result = satisfy(mySearch, afficherHoraire)
+  val result = minimize(mySearch,contraintesSoft,afficherHoraire)
 
   /**
    * affichage horaire
    */
   def afficherHoraire(): Unit = {
     var compteur = 1
+    val moduloDebut=3*nTranchesHorairesJour*nJours
+
     for (v <- all_series) {
-      if (compteur % 60 == 1) {
+      if (compteur % moduloDebut == 1) {
         println("SERIE "+ (compteur/60+1))
         println("%-15s".format("")+"%-30s".format("LUNDI")+"%-32s".format("| MARDI")+"%-32s".format("| MERCREDI")+"%-32s".format("| JEUDI")+"%-30s".format("| VENDREDI"))
         println("---------------------------------------------------------------------------------------------------------------------------------------------------------------------");
       }
-      (compteur%60) match{
+      (compteur%moduloDebut) match{
         case 1 => print("%-15s".format("8h30-10h30"))
         case 16 => print("%-15s".format("10h45-12h45"))
         case 31 => print("%-15s".format("13h45-15h45"))
@@ -215,8 +167,8 @@ object GrilleHoraireEtape4 extends App with jacop {
       }
 
       if (compteur % 3 == 0) print("| ")
-      if (compteur % 15 == 0) println()
-      if (compteur % 60 == 0) println("\n")
+      if (compteur % (3*nJours) == 0) println()
+      if (compteur % moduloDebut == 0) println("\n")
       
       compteur += 1
 
@@ -232,47 +184,84 @@ object GrilleHoraireEtape4 extends App with jacop {
     List(bool,bool2)
   }
   
-  //TODO ajouter serie 2 
-  def absenceProfAvantHeure(indiceProf:Int,indiceHeure:Int) : List[BoolVar]={    
-    val liste=for ( indice <- List.range(0, indiceHeure*nJours+nTranchesHorairesJour)) yield{
+  def absenceProfAvantHeure(indiceProf:Int,indiceHeure:Int) : List[BoolVar]={
+    val liste1=for ( indice <- List.range(0, indiceHeure*nJours+nTranchesHorairesJour+1)) yield{
         val bool=new BoolVar() 
         bool<=> (serie1(indice)(iProf) #\= indiceProf)
         bool
-    };
-    liste
-  }
-  //TODO ajouter serie 2 
-  def absenceProfApresHeure(indiceProf:Int,indiceHeure:Int) : List[BoolVar]={    
-    val liste=for ( indice <- List.range(indiceHeure*nJours,nTranchesHorairesSem )) yield{
-        val bool=new BoolVar() 
-        bool<=> (serie1(indice)(iProf) #\= indiceProf)
-        bool
-    };
-    liste
-  }
-  //TODO ajouter serie 2 
-  def absenceProfJour(indiceProf:Int,indiceJour:Int) : List[BoolVar]={    
-    val liste=for ( indice <- List.range(0,nTranchesHorairesJour)) yield{
         
+    };
+    val liste2=for ( indice <- List.range(0, indiceHeure*nJours+nTranchesHorairesJour+1)) yield{
+      val bool=new BoolVar() 
+      bool<=> (serie2(indice)(iProf) #\= indiceProf)
+      bool
+        
+    };
+    liste1 ::: liste2
+  }
+
+  def absenceProfApresHeure(indiceProf:Int,indiceHeure:Int) : List[BoolVar]={    
+    val liste1=for ( indice <- List.range(indiceHeure*nJours,nTranchesHorairesSem )) yield{
+        val bool=new BoolVar() 
+        bool<=> (serie1(indice)(iProf) #\= indiceProf)
+        bool
+    };
+    val liste2=for ( indice <- List.range(indiceHeure*nJours,nTranchesHorairesSem )) yield{
+        val bool=new BoolVar() 
+        bool<=> (serie2(indice)(iProf) #\= indiceProf)
+        bool
+    };
+    liste1 ::: liste2
+  }
+
+  def absenceProfJour(indiceProf:Int,indiceJour:Int) : List[BoolVar]={    
+    val liste=for ( indice <- List.range(0,nTranchesHorairesJour)) yield{       
         val bool=new BoolVar() 
         bool<=> (serie1(indiceJour*nJours+indice)(iProf) #\= indiceProf)
         bool
     };
-    liste
+    val liste2=for ( indice <- List.range(0,nTranchesHorairesJour)) yield{ 
+        val bool=new BoolVar() 
+        bool<=> (serie2(indiceJour*nJours+indice)(iProf) #\= indiceProf)
+        bool
+    };
+    liste:::liste2
   }
   
   def placerContraintesNombreHeuresADonnerPourProf(indiceProf:Int, nbHeures:Int) {
-     val liste=for ( indice <- List.range(0,nTranchesHorairesSem)) yield{
-        
+     val liste=for ( indice <- List.range(0,nTranchesHorairesSem)) yield{    
         val bool=new BoolVar()
-        val bool2=new BoolVar()
         bool<=> (serie1(indice)(iProf) #= indiceProf )
-        bool2 <=>(serie2(indice)(iProf) #= indiceProf )
-        /*List(*/bool/*,bool2)*/
+        bool
     };
-    sum(liste/*.flatten*/) #= nbHeures
+    val liste2=for ( indice <- List.range(0,nTranchesHorairesSem)) yield{    
+        val bool2=new BoolVar()
+        bool2 <=>(serie2(indice)(iProf) #= indiceProf )
+        bool2
+    };
+    sum(liste:::liste2) #= nbHeures
   }
   
   def append[A](x: List[A], y: List[A]): List[A] = for (e <- x.++(y)) yield e
+  
+  def placerContraintesNombreHeuresCours(indiceCours:Int,nbHeures:Int){
+     val liste=for ( indice <- List.range(0,nTranchesHorairesSem)) yield{    
+        val bool=new BoolVar()
+        bool<=> (serie1(indice)(iCours) #= indiceCours )
+        bool
+    };
+    sum(liste) #= nbHeures
+    val liste2=for ( indice <- List.range(0,nTranchesHorairesSem)) yield{    
+        val bool2=new BoolVar()
+        bool2 <=>(serie2(indice)(iCours) #= indiceCours )
+        bool2
+    };
+    sum(liste2) #= nbHeures
+  }
+  
+  
+  
+  
+  
   
 }

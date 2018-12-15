@@ -6,7 +6,7 @@ import JaCoP.scala._
 import scala.reflect.ClassManifestFactory.classType
 
 /**
- * contraintes pour l etape 1 : 
+ * contraintes pour l etape 3 : 
  * 	- Chaque cours n est donne que 2 fois par serie et par semaine
  *  - M. Grolaux, M. Choquet et M. Damas ne donne pas cours avant 10h45
  *  - Aucun prof ne donne cours le lundi
@@ -56,9 +56,9 @@ object GrilleHoraire extends App with jacop {
   )*/
 
   // nombre profs/cours/locaux/series/jours/horaires
-  val nProf = 4
-  val nCours = 4
-  val nLocaux = 2
+  val nProf = profs.size
+  val nCours = cours.size
+  val nLocaux = locaux.size
   val nSeries = 2
   val nJours = 5
   val nTranchesHorairesJour = 4
@@ -120,7 +120,7 @@ object GrilleHoraire extends App with jacop {
     }
     // - Aucun prof ne donne cours le lundi
     if (i % 5==0) {
-      for(k<- 1 to nCours){
+      for(k<- 1 to profs.size){
         serie1(i)(iProf) #\= k
         serie2(i)(iProf) #\= k
       }
@@ -195,7 +195,7 @@ object GrilleHoraire extends App with jacop {
             }          
         );
       }
-      //json(series.get(i).get)->liste);
+      //.+ ne fonctionne pas car n ajoute pas dans la map
       json += (series.get(i).get->liste)
     }
     
