@@ -29,7 +29,7 @@ object GrilleHoraireEtape1Et2 extends App with jacop {
     3 -> "Choquet",
     4 -> "Leleux")
   val cours = Map(
-    1 -> "Infra",
+    1 -> "Infra(ex)",
     2 -> "PLFC",
     3 -> "Web3",
     4 -> "Pattern")
@@ -37,18 +37,11 @@ object GrilleHoraireEtape1Et2 extends App with jacop {
   val locaux = Map(
     1 -> "017",
     2 -> "019")
-    
-  /*val coursParProf = Map(
-    1 -> List(2,4),
-    2 -> List(4),
-    3 -> List(1),
-    4 -> List(3)
-  )*/
 
   // nombre profs/cours/locaux/series/jours/horaires
-  val nProf = 4
-  val nCours = 4
-  val nLocaux = 2
+  val nProf = profs.size
+  val nCours = cours.size
+  val nLocaux = locaux.size
   val nSeries = 2
   val nJours = 5
   val nTranchesHorairesJour = 4
@@ -87,18 +80,15 @@ object GrilleHoraireEtape1Et2 extends App with jacop {
       b <=> (serie2(j)(iCours) #= i)
       b
     }
-    sum(coursTempS1) #= 2 // 2 tranche horaires pour chaque cours par serie
-    sum(coursTempS2) #= 2 // 2 tranche horaires pour chaque cours par serie
+    sum(coursTempS1) #= 2 // Par serie, chaque cours dure exactement 2 tranches horaires (4h)
+    sum(coursTempS2) #= 2 // Par serie, chaque cours dure exactement 2 tranches horaires (4h)
   }
-  
-  /* COURS PAR PROF*/
-  /*coursParProf.foreach{
-    case (key,value) => print (key + " "+value) //TODO 
-  }*/
+
   
   /* TRANCHES HORAIRES */
+  
   for (i <- List.range(0, nTranchesHorairesSem)) {
-
+    /* CONTRAINTES PROFESSORALES */
     // - M. Grolaux, M. Choquet et M. Damas ne donne pas cours avant 10h45
     if (i < 5) {
       serie1(i)(iProf) #\= 3 //M. Choquet
@@ -207,7 +197,3 @@ object GrilleHoraireEtape1Et2 extends App with jacop {
   }
 }
 
-// contraintes soft
-// minimize sur un IntVar -> 0 = aucune transgression
-// comment donner un poids plus fort à d'autres contraintes de type boolvar ?
-// -> multiplier

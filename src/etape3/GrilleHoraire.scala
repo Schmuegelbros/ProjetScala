@@ -1,6 +1,6 @@
 
 
-package server_etape3
+package etape3
 
 import JaCoP.scala._
 import scala.reflect.ClassManifestFactory.classType
@@ -47,13 +47,6 @@ object GrilleHoraire extends App with jacop {
   val locaux = Map(
     1 -> "017",
     2 -> "019")
-    
-  /*val coursParProf = Map(
-    1 -> List(2,4),
-    2 -> List(4),
-    3 -> List(1),
-    4 -> List(3)
-  )*/
 
   // nombre profs/cours/locaux/series/jours/horaires
   val nProf = profs.size
@@ -100,11 +93,6 @@ object GrilleHoraire extends App with jacop {
     sum(coursTempS1) #= 2 // 2 tranche horaires pour chaque cours par serie
     sum(coursTempS2) #= 2 // 2 tranche horaires pour chaque cours par serie
   }
-  
-  /* COURS PAR PROF*/
-  /*coursParProf.foreach{
-    case (key,value) => print (key + " "+value) //TODO 
-  }*/
   
   /* TRANCHES HORAIRES */
   for (i <- List.range(0, nTranchesHorairesSem)) {
@@ -201,51 +189,6 @@ object GrilleHoraire extends App with jacop {
     
     json
   }
-  /**
-   * affichage horaire
-   */
-  /*def afficherHoraire(): Unit = {
-    var compteur = 1
-    for (v <- all_series) {
-      if (compteur % 60 == 1) {
-        println("SERIE "+ (compteur/60+1))
-        println("%-15s".format("")+"%-30s".format("LUNDI")+"%-32s".format("| MARDI")+"%-32s".format("| MERCREDI")+"%-32s".format("| JEUDI")+"%-30s".format("| VENDREDI"))
-        println("---------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-      }
-      (compteur%60) match{
-        case 1 => print("%-15s".format("8h30-10h30"))
-        case 16 => print("%-15s".format("10h45-12h45"))
-        case 31 => print("%-15s".format("13h45-15h45"))
-        case 46 => print("%-15s".format("16h00-18h00"))
-        case default => print("")
-      }
-      //print(v.value()+" ")
-      v.id() match {
-        case "prof" => print(profs.get(v.value()) match {
-          case Some(name) => "%-10s".format(name)
-          case None => "%-10s".format("Fourche")
-        })
-        case "cours" => print(cours.get(v.value()) match {
-        case Some(name) => "%-10s".format(name)
-          case None => "%-10s".format("")
-        })
-        case "local" => print(locaux.get(v.value()) match {
-        case Some(name) => "%-10s".format(name)
-          case None => "%-10s".format("")
-        })
-      }
-
-      if (compteur % 3 == 0) print("| ")
-      if (compteur % 15 == 0) println()
-      if (compteur % 60 == 0) println("\n")
-      
-      compteur += 1
-
-    }
-  }*/
+  
 }
 
-// contraintes soft
-// minimize sur un IntVar -> 0 = aucune transgression
-// comment donner un poids plus fort à d'autres contraintes de type boolvar ?
-// -> multiplier

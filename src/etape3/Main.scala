@@ -1,4 +1,4 @@
-package server_etape3
+package etape3
 import JaCoP.scala._
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.webapp.WebAppContext

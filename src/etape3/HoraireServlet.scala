@@ -1,4 +1,4 @@
-package server_etape3
+package etape3
 
 import javax.servlet.http.HttpServlet
 import javax.servlet.http.HttpServletRequest
